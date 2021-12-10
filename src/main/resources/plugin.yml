@@ -1,0 +1,11 @@
+name: SwalbertCurrencies
+version: '${project.version}'
+main: com.justinmtech.swalbertcurrencies.SwalbertCurrencies
+prefix: SwalbertCurrencies
+authors: [ justinmtech ]
+description: A Minecraft plugin for creating and storing multiple currencies.
+website: https://justinmtech.com
+commands:
+  credits:
+    usage: "/credits"
+    aliases:
