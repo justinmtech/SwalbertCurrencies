@@ -10,9 +10,13 @@ import com.justinmtech.swalbertcurrencies.listeners.PlayerQuitListener;
 import com.justinmtech.swalbertcurrencies.persistence.FlatfileDataHandler;
 import com.justinmtech.swalbertcurrencies.persistence.ManageData;
 import org.bukkit.Bukkit;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.lang.reflect.Field;
 import java.util.List;
 
 public final class SwalbertCurrencies extends JavaPlugin {
@@ -22,6 +26,17 @@ public final class SwalbertCurrencies extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        SimplePluginManager spm = (SimplePluginManager)this.getServer().getPluginManager();
+        try {
+            Field f = SimplePluginManager.class.getDeclaredField("commandMap");
+            f.setAccessible(true);
+            SimpleCommandMap scm = (SimpleCommandMap) f.get(spm);
+            scm.register("SwalbertCurrencies", new CommandHandler(this));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         initialSetup();
         registerEvents();
         System.out.println("SwalbertCurrencies enabled!");

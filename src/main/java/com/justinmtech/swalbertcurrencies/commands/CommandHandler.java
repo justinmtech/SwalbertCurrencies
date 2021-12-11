@@ -3,6 +3,7 @@ package com.justinmtech.swalbertcurrencies.commands;
 import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
 import com.justinmtech.swalbertcurrencies.core.Currency;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -212,6 +213,14 @@ public class CommandHandler implements CommandExecutor {
             commandSender.sendMessage(plugin.getMessages().adminErrorInvalidPlayer());
             return false;
         }
+    }
+
+    private boolean hasPlayedBefore(OfflinePlayer offlinePlayer) {
+        return offlinePlayer.hasPlayedBefore();
+    }
+
+    private String getUUID(OfflinePlayer offlinePlayer) {
+        return offlinePlayer.getUniqueId().toString();
     }
 
     private boolean hasDecimal(String arg) {
