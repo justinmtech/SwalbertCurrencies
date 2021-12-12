@@ -1,6 +1,8 @@
 package com.justinmtech.swalbertcurrencies;
 
 import com.justinmtech.swalbertcurrencies.commands.CommandHandler;
+import com.justinmtech.swalbertcurrencies.commands.CurrencyCommand;
+import com.justinmtech.swalbertcurrencies.commands.CustomCommand;
 import com.justinmtech.swalbertcurrencies.configuration.ConfigManager;
 import com.justinmtech.swalbertcurrencies.configuration.Messages;
 import com.justinmtech.swalbertcurrencies.core.Currency;
@@ -17,28 +19,28 @@ import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 
 public final class SwalbertCurrencies extends JavaPlugin {
     private ManageData data;
     private ConfigManager configManager;
     private Messages messages;
+    private static SwalbertCurrencies instance;
+    private SimplePluginManager spm;
+    private static SimpleCommandMap scm;
 
     @Override
     public void onEnable() {
-        SimplePluginManager spm = (SimplePluginManager)this.getServer().getPluginManager();
-        try {
-            Field f = SimplePluginManager.class.getDeclaredField("commandMap");
-            f.setAccessible(true);
-            SimpleCommandMap scm = (SimpleCommandMap) f.get(spm);
-            scm.register("SwalbertCurrencies", new CommandHandler(this));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        instance = this;
+        setupSimpleCommandMap();
         initialSetup();
         registerEvents();
+
+        List<Currency> currencies = data.getCurrencies();
+        for (Currency currency : currencies) {
+            registerCommand(new CurrencyCommand(currency.getName(), currency.getName() + " ", "/" + currency.getName(), currency.getAliasNames()));
+        }
         System.out.println("SwalbertCurrencies enabled!");
     }
 
@@ -76,14 +78,6 @@ public final class SwalbertCurrencies extends JavaPlugin {
         data.initialSetup();
 
         initializePlayers();
-
-        List<Currency> currencies = data.getCurrencies();
-        this.getCommand(currencies.get(0).getName()).setExecutor(new CommandHandler(this));
-        for (Currency currency : currencies) {
-            for (String alias : currency.getAliasNames()) {
-                this.getCommand(currencies.get(0).getName()).getAliases().add(alias);
-            }
-        }
     }
 
     private void initializePlayers() {
@@ -97,5 +91,33 @@ public final class SwalbertCurrencies extends JavaPlugin {
         for (Player player : Bukkit.getOnlinePlayers()) {
             data.savePlayer(player);
         }
+    }
+
+    private void registerCommand(CustomCommand command) {
+        scm.register("SwalbertCurrencies", command);
+    }
+
+    private void setupSimpleCommandMap() {
+        spm = (SimplePluginManager) this.getServer().getPluginManager();
+        Field f = null;
+        try {
+            f = SimplePluginManager.class.getDeclaredField("commandMap");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        f.setAccessible(true);
+        try {
+            scm = (SimpleCommandMap) f.get(spm);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static SimpleCommandMap getCommandMap() {
+        return scm;
+    }
+
+    public static SwalbertCurrencies getInstance() {
+        return instance;
     }
 }
