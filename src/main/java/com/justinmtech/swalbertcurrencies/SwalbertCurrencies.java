@@ -1,6 +1,5 @@
 package com.justinmtech.swalbertcurrencies;
 
-import com.justinmtech.swalbertcurrencies.commands.CommandHandler;
 import com.justinmtech.swalbertcurrencies.commands.CurrencyCommand;
 import com.justinmtech.swalbertcurrencies.commands.CustomCommand;
 import com.justinmtech.swalbertcurrencies.configuration.ConfigManager;
@@ -11,6 +10,7 @@ import com.justinmtech.swalbertcurrencies.listeners.PlayerJoinListener;
 import com.justinmtech.swalbertcurrencies.listeners.PlayerQuitListener;
 import com.justinmtech.swalbertcurrencies.persistence.FlatfileDataHandler;
 import com.justinmtech.swalbertcurrencies.persistence.ManageData;
+import com.justinmtech.swalbertcurrencies.persistence.MySQLDataHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -19,7 +19,6 @@ import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
 
 public final class SwalbertCurrencies extends JavaPlugin {
@@ -33,21 +32,24 @@ public final class SwalbertCurrencies extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        setupSimpleCommandMap();
         initialSetup();
+        setupSimpleCommandMap();
+        registerCurrencyCommands();
         registerEvents();
-
-        List<Currency> currencies = data.getCurrencies();
-        for (Currency currency : currencies) {
-            registerCommand(new CurrencyCommand(currency.getName(), currency.getName() + " ", "/" + currency.getName(), currency.getAliasNames()));
-        }
-        System.out.println("SwalbertCurrencies enabled!");
     }
 
     @Override
     public void onDisable() {
         savePlayers();
-        System.out.println("SwalbertCurrencies disabled.");
+    }
+
+    private void registerCurrencyCommands() {
+        List<Currency> currencies = configManager.getCurrencies();
+        for (Currency currency : currencies) {
+            CustomCommand command = new CurrencyCommand(currency.getName());
+            command.setAliases(currency.getAliasNames());
+            registerCommand(command);
+        }
     }
 
     private void registerEvents() {
@@ -71,16 +73,18 @@ public final class SwalbertCurrencies extends JavaPlugin {
         ConfigurationSerialization.registerClass(Currency.class);
         ConfigurationSerialization.registerClass(PlayerModel.class);
         configManager = new ConfigManager(this);
-        data = new FlatfileDataHandler(this, configManager);
-        configManager.generateConfigIfNoneExists();
-        configManager.generateMessagesConfigIfNoneExists();
         messages = new Messages(this);
+        if (configManager.getSqlEnabled()) {
+            data = new MySQLDataHandler(this, configManager);
+        } else {
+            data = new FlatfileDataHandler(this, configManager);
+        }
         data.initialSetup();
 
-        initializePlayers();
+        initializeOnlinePlayers();
     }
 
-    private void initializePlayers() {
+    private void initializeOnlinePlayers() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             data.loadPlayer(player);
             data.savePlayer(player);

@@ -4,12 +4,14 @@ import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
 import com.justinmtech.swalbertcurrencies.configuration.ConfigManager;
 import com.justinmtech.swalbertcurrencies.core.Currency;
 import com.justinmtech.swalbertcurrencies.core.PlayerModel;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -75,34 +77,51 @@ public class FlatfileDataHandler implements ManageData {
         return YamlConfiguration.loadConfiguration(file);
     }
 
+    private FileConfiguration getFileConfiguration(OfflinePlayer player) {
+        File file = new File("plugins//SwalbertCurrencies//data//" + player.getUniqueId().toString() + ".yml");
+        return YamlConfiguration.loadConfiguration(file);
+    }
+
     private File getPlayerDataFile(Player player) {
         return new File("plugins//SwalbertCurrencies//data//" + player.getUniqueId().toString() + ".yml");
     }
 
-    private boolean updateOfflinePlayer(Player player, String currencyName, String type, BigDecimal amount) {
-        BigDecimal prevBalance = (BigDecimal) getFileConfiguration(player).get("currencies." + currencyName + ".amount");;
+    private File getPlayerDataFile(OfflinePlayer player) {
+        return new File("plugins//SwalbertCurrencies//data//" + player.getUniqueId().toString() + ".yml");
+    }
+
+    private boolean updateOfflinePlayer(OfflinePlayer player, Currency currency, String type, BigDecimal amount) {
+        BigDecimal prevBalance = plugin.getData().getBalance(player, currency);
         BigDecimal newBalance;
         switch (type) {
             case "give":
                 newBalance = prevBalance.add(amount);
-                getFileConfiguration(player).set("currencies." + currencyName + ".amount", newBalance);
+                modifyDataFile(player, currency, newBalance);
                 return true;
             case "take":
                 newBalance = prevBalance.subtract(amount);
-                getFileConfiguration(player).set("currencies." + currencyName + ".amount", newBalance);
+                modifyDataFile(player, currency, newBalance);
                 return true;
             case "set":
-                getFileConfiguration(player).set("currencies." + currencyName + ".amount", amount);
+                modifyDataFile(player, currency, amount);
                 return true;
             case "reset":
-                getFileConfiguration(player).set("currencies." + currencyName + ".amount", BigDecimal.ZERO);
+                modifyDataFile(player, currency, BigDecimal.ZERO);
                 return true;
         }
         return false;
     }
 
+    private boolean modifyDataFile(OfflinePlayer player, Currency currency, BigDecimal amount) {
+        PlayerModel pm = (PlayerModel) getFileConfiguration(player).get("data");
+        pm.setUuid(player.getUniqueId().toString());
+        pm.getCurrencies().replace(currency.getName(), amount);
+        plugin.getData().saveOfflinePlayer(player, pm);
+        return true;
+    }
+
     private boolean updateOnlinePlayer(Player player, Currency currency, String type, BigDecimal amount) {
-        BigDecimal prevBalance = plugin.getData().getBalance(player, currency, false);
+        BigDecimal prevBalance = plugin.getData().getBalance(player, currency);
         BigDecimal newBalance;
         switch (type) {
             case "give":
@@ -130,64 +149,55 @@ public class FlatfileDataHandler implements ManageData {
     }
 
     @Override
-    public BigDecimal getBalance(Player player, Currency currency, boolean offline) {
-        if (offline) {
-        return (BigDecimal) getFileConfiguration(player).get("currencies." + currency + ".amount");
+    public BigDecimal getBalance(OfflinePlayer player, Currency currency) {
+        if (!player.isOnline()) {
+            FileConfiguration playerFile = getFileConfiguration(player);
+            PlayerModel pm = (PlayerModel) playerFile.get("data");
+            return pm.getCurrencies().get(currency.getName());
         } else {
             return data.get(player.getUniqueId().toString()).getCurrencies().get(currency.getName());
         }
     }
 
     @Override
-    public List<Currency> getCurrencies() {
-        List<Currency> currencies = new ArrayList<>();
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("currencies");
-        Set<String> currencyNames = plugin.getConfig().getConfigurationSection("currencies").getKeys(false);
-
-        for (String currency : currencyNames) {
-            ConfigurationSection currencySection = plugin.getConfig().getConfigurationSection("currencies." + currency);
-            Set<String> keys = currencySection.getKeys(true);
-            HashMap<String, Object> map = new HashMap<>();
-                for (String key : keys) {
-                    Object object = currencySection.get(key);
-                    map.put(key, object);
-                }
-                Currency currencyObject = new Currency(currency, map);
-                currencies.add(currencyObject);
-        }
-        return currencies;
-    }
-
-    @Override
-    public boolean setBalance(Player player, Currency currency, BigDecimal amount, boolean offline) {
-        if (offline) {
-            return updateOfflinePlayer(player, currency.getName(), "set", amount);
+    public boolean setBalance(OfflinePlayer player, Currency currency, BigDecimal amount) {
+        if (!player.isOnline()) {
+            return updateOfflinePlayer(player, currency, "set", amount);
         } else {
-            updateOnlinePlayer(player, currency, "set", amount);
-            player.sendMessage(plugin.getMessages().adminSuccessSetCurrency(player.getName(), currency.getName(), amount.toString()));
+            updateOnlinePlayer(player.getPlayer(), currency, "set", amount);
+            player.getPlayer().sendMessage(plugin.getMessages().adminSuccessSetCurrency(player.getName(), currency.getName(), amount.toString()));
             return true;
         }
     }
 
     @Override
-    public boolean payBalance(Player sender, Player receiver, Currency currency, BigDecimal amount, boolean receiverOffline) {
+    public boolean payBalance(OfflinePlayer sender, OfflinePlayer receiver, Currency currency, BigDecimal amount) {
         boolean transactionA;
         boolean transactionB;
         BigDecimal senderNewBalance;
         BigDecimal receiverNewBalance;
 
-        transactionA = updateOnlinePlayer(sender, currency, "take", amount);
-        senderNewBalance = plugin.getData().getBalance(sender, currency, false);
+        transactionA = updateOnlinePlayer(sender.getPlayer(), currency, "take", amount);
+        senderNewBalance = plugin.getData().getBalance(sender, currency);
 
-        if (receiverOffline) {
-            transactionB = updateOfflinePlayer(receiver, currency.getName(), "give", amount);
+        if (!receiver.isOnline()) {
+            transactionB = updateOfflinePlayer(receiver, currency, "give", amount);
         } else {
-            transactionB = updateOnlinePlayer(receiver, currency, "give", amount);
+            transactionB = updateOnlinePlayer(receiver.getPlayer(), currency, "give", amount);
         }
-        receiverNewBalance = plugin.getData().getBalance(receiver, currency, false);
+        receiverNewBalance = plugin.getData().getBalance(receiver, currency);
         if (transactionA && transactionB) {
-            sender.sendMessage(plugin.getMessages().playerSuccessPay(receiver.getName(), currency.getName(), amount.toString(), senderNewBalance.toString()));
-            receiver.sendMessage(plugin.getMessages().playerSuccessPayReceive(sender.getName(), currency.getName(), amount.toString(), receiverNewBalance.toString()));
+            if (currency.isAllowDecimals()) {
+                sender.getPlayer().sendMessage(plugin.getMessages().playerSuccessPay(receiver.getName(), currency.getName(), amount.toString(), senderNewBalance.toString()));
+                if (receiver.isOnline()) {
+                receiver.getPlayer().sendMessage(plugin.getMessages().playerSuccessPayReceive(sender.getName(), currency.getName(), amount.toString(), receiverNewBalance.toString()));
+                }
+            } else {
+                sender.getPlayer().sendMessage(plugin.getMessages().playerSuccessPay(receiver.getName(), currency.getName(), amount.toBigInteger().toString(), senderNewBalance.toBigInteger().toString()));
+                if (receiver.isOnline()) {
+                receiver.getPlayer().sendMessage(plugin.getMessages().playerSuccessPayReceive(sender.getName(), currency.getName(), amount.toBigInteger().toString(), receiverNewBalance.toBigInteger().toString()));
+                }
+            }
             return true;
         } else {
             return false;
@@ -195,29 +205,29 @@ public class FlatfileDataHandler implements ManageData {
     }
 
     @Override
-    public boolean takeBalance(Player player, Currency currency, BigDecimal amount, boolean offline) {
-        if (offline) {
-            return updateOfflinePlayer(player, currency.getName(), "take", amount);
+    public boolean takeBalance(OfflinePlayer player, Currency currency, BigDecimal amount) {
+        if (!player.isOnline()) {
+            return updateOfflinePlayer(player, currency, "take", amount);
         } else {
-            return updateOnlinePlayer(player, currency, "take", amount);
+            return updateOnlinePlayer(player.getPlayer(), currency, "take", amount);
         }
     }
 
     @Override
-    public boolean giveBalance(Player player, Currency currency, BigDecimal amount, boolean offline) {
-        if (offline) {
-            return updateOfflinePlayer(player, currency.getName(), "give", amount);
+    public boolean giveBalance(OfflinePlayer player, Currency currency, BigDecimal amount) {
+        if (!player.isOnline()) {
+            return updateOfflinePlayer(player, currency, "give", amount);
         } else {
-            return updateOnlinePlayer(player, currency, "give", amount);
+            return updateOnlinePlayer(player.getPlayer(), currency, "give", amount);
         }
     }
 
     @Override
-    public boolean resetBalance(Player player, Currency currency, boolean offline) {
-        if (offline) {
-            return updateOfflinePlayer(player, currency.getName(), "reset", null);
+    public boolean resetBalance(OfflinePlayer player, Currency currency) {
+        if (!player.isOnline()) {
+            return updateOfflinePlayer(player, currency, "reset", null);
         } else {
-            return updateOnlinePlayer(player, currency, "reset", BigDecimal.ZERO);
+            return updateOnlinePlayer(player.getPlayer(), currency, "reset", BigDecimal.ZERO);
         }
     }
 
@@ -247,6 +257,20 @@ public class FlatfileDataHandler implements ManageData {
             }
         }
     }
+
+    @Override
+    public boolean saveOfflinePlayer(OfflinePlayer player, PlayerModel playerModel) {
+        FileConfiguration playerFile = getFileConfiguration(player);
+        playerFile.set("data", playerModel);
+        try {
+            playerFile.save(getPlayerDataFile(player));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     @Override
     public boolean savePlayers(List<Player> players) {
         try {
@@ -281,7 +305,7 @@ public class FlatfileDataHandler implements ManageData {
 
     private PlayerModel buildNewPlayerModel(Player player) {
         PlayerModel pm = new PlayerModel(player.getUniqueId().toString());
-        List<Currency> currencies = plugin.getData().getCurrencies();
+        List<Currency> currencies = plugin.getConfigManager().getCurrencies();
         for (Currency currency : currencies) {
             pm.getCurrencies().put(currency.getName(), BigDecimal.valueOf(100));
         }

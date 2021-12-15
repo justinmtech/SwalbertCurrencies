@@ -2,22 +2,23 @@ package com.justinmtech.swalbertcurrencies.configuration;
 
 import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
 import com.justinmtech.swalbertcurrencies.core.Currency;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ConfigManager {
     private SwalbertCurrencies plugin;
 
     public ConfigManager(SwalbertCurrencies plugin) {
         this.plugin = plugin;
+        generatePluginFolderIfNoneExists();
+        generateConfigIfNoneExists();
+        generateMessagesConfigIfNoneExists();
     }
 
     public SwalbertCurrencies getPlugin() {
@@ -26,6 +27,13 @@ public class ConfigManager {
 
     public void setPlugin(SwalbertCurrencies plugin) {
         this.plugin = plugin;
+    }
+
+    public boolean generatePluginFolderIfNoneExists() {
+        if (!getConfigFolder().exists()) {
+                return getConfigFolder().mkdir();
+        }
+        return false;
     }
 
     public boolean generateConfigIfNoneExists() {
@@ -58,10 +66,13 @@ public class ConfigManager {
 
     private void setDefaultConfig() {
         FileConfiguration config = getConfig();
-        config.set("sql.host", "0.0.0.0");
+        config.set("sql.enabled", false);
+        config.set("sql.host", "localhost");
         config.set("sql.port", 3306);
         config.set("sql.username", "user");
         config.set("sql.password", "password");
+        config.set("sql.database", "dbName");
+        config.set("sql.table", "table");
         List<String> aliases = new ArrayList<>(Arrays.asList("credit", "c"));
         List<String> currencies = new ArrayList<>(Arrays.asList("credit"));
         config.set("currencies", currencies);
@@ -86,19 +97,6 @@ public class ConfigManager {
         return YamlConfiguration.loadConfiguration(getMessagesConfigFile());
     }
 
-    private boolean createMessagesConfigFile() {
-        if (!getMessagesConfigFile().exists()) {
-            try {
-                getMessagesConfigFile().createNewFile();
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
-
     private void setDefaultMessagesConfig() {
         FileConfiguration messages = getMessagesConfig();
         messages.set("admin.usage.reload", "&8[&c&l!&8] &eUsage: &7/%currency% reload");
@@ -119,9 +117,10 @@ public class ConfigManager {
         messages.set("admin.success.take-currency", "&8[&e&l!&8] &e%amount% &7%currency% been taken from &e%player%&7. Their balance is now &e%balance%&7.");
 
         messages.set("player.usage.check-other", "&8[&c&l!&8] &eUsage: &7/%currency% <player>");
+        messages.set("player.usage.general", "&8[&c&l!&8] &eUsage: &7/%currency% <player, pay> <amount>");
         messages.set("player.usage.pay", "&8[&c&l!&8] &eUsage: &7/%currency% pay <player> <amount>");
         messages.set("player.error.no-permission", "&8[&c&l!&8] &7You do not have permission to do that.");
-        messages.set("player.error.only-integers", "&8[&c&l!&8] &You can only use integers for this currency.");
+        messages.set("player.error.only-integers", "&8[&c&l!&8] &7You can only use integers for this currency.");
         messages.set("player.error.invalid-number", "&8[&c&l!&8] &e%input% &7is not a valid number.");
         messages.set("player.error.invalid-player", "&8[&c&l!&8] &e%input% &7has never joined before.");
         messages.set("player.error.insufficient-funds", "&8[&c&l!&8] &7You do not have &e%amount% &7%currency%.");
@@ -147,13 +146,14 @@ public class ConfigManager {
         return new File("plugins//SwalbertCurrencies//config.yml");
     }
 
-    public File getDataFolder() {
-        return new File("plugins//SwalbertCurrencies//data");
+    public File getConfigFolder() {
+        return new File("plugins//SwalbertCurrencies");
     }
 
     public File getPlayerDataFile(Player player) {
         return new File("plugins//SwalbertCurrencies//data//" + player.getUniqueId().toString() + ".yml");
     }
+    public boolean getSqlEnabled() {return getConfig().getBoolean("sql.enabled");}
 
     public String getSqlHost() {
         return getConfig().getString("sql.host");
@@ -162,6 +162,8 @@ public class ConfigManager {
     public int getSqlPort() {
         return getConfig().getInt("sql.port");
     }
+
+    public String getSqlTable() {return getConfig().getString("sql.table");}
 
     public String getSqlUsername() {
         return getConfig().getString("sql.username");
@@ -173,5 +175,24 @@ public class ConfigManager {
 
     public String getSqlDatabase() {
         return getConfig().getString("sql.database");
+    }
+
+    public List<Currency> getCurrencies() {
+        List<Currency> currencies = new ArrayList<>();
+        ConfigurationSection section = getConfig().getConfigurationSection("currencies");
+        Set<String> currencyNames = getConfig().getConfigurationSection("currencies").getKeys(false);
+
+        for (String currency : currencyNames) {
+            ConfigurationSection currencySection = getConfig().getConfigurationSection("currencies." + currency);
+            Set<String> keys = currencySection.getKeys(true);
+            HashMap<String, Object> map = new HashMap<>();
+            for (String key : keys) {
+                Object object = currencySection.get(key);
+                map.put(key, object);
+            }
+            Currency currencyObject = new Currency(currency, map);
+            currencies.add(currencyObject);
+        }
+        return currencies;
     }
 }

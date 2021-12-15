@@ -38,6 +38,16 @@ public class Messages {
         return str;
     }
 
+    public String adminTakeCurrency(String currencyName) {
+        String str = getStringFromPath("admin.usage.take-currency");
+        str = str.replace("%currency%", currencyName);
+        return str;
+    }
+
+    public String adminUsageGeneral() {
+        return getStringFromPath("admin.usage.general");
+    }
+
     public String adminErrorNoPermission() {
         return getStringFromPath("admin.error.no-permission");
     }
@@ -116,6 +126,10 @@ public class Messages {
         String str = getStringFromPath("player.usage.pay");
         str = str.replace("%currency%", currencyName);
         return str;
+    }
+
+    public String playerUsageGeneral() {
+        return getStringFromPath("player.usage.general");
     }
 
     public String playerErrorNoPermission() {
