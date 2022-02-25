@@ -1,11 +1,9 @@
-package com.justinmtech.swalbertcurrencies.persistence;
+package com.justinmtech.customcurrencies.persistence;
 
-import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
-import com.justinmtech.swalbertcurrencies.configuration.ConfigManager;
-import com.justinmtech.swalbertcurrencies.core.Currency;
-import com.justinmtech.swalbertcurrencies.core.PlayerModel;
+import com.justinmtech.customcurrencies.CustomCurrencies;
+import com.justinmtech.customcurrencies.currencies.Currency;
+import com.justinmtech.customcurrencies.currencies.PlayerModel;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -13,16 +11,16 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class FlatfileDataHandler implements ManageData {
-    private SwalbertCurrencies plugin;
-    private ConfigManager configManager;
-    private Map<String, PlayerModel> data;
+public class FileManager implements ManageData {
+    private final CustomCurrencies plugin;
+    private final Map<String, PlayerModel> data;
 
-    public FlatfileDataHandler(SwalbertCurrencies plugin, ConfigManager configManager) {
+    public FileManager(CustomCurrencies plugin) {
         this.plugin = plugin;
-        this.configManager = configManager;
         data = new HashMap<>();
     }
 

@@ -1,7 +1,7 @@
-package com.justinmtech.swalbertcurrencies.commands;
+package com.justinmtech.customcurrencies.commands;
 
-import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
-import com.justinmtech.swalbertcurrencies.core.Currency;
+import com.justinmtech.customcurrencies.CustomCurrencies;
+import com.justinmtech.customcurrencies.currencies.Currency;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -13,9 +13,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class CommandHandler implements CommandExecutor {
-    private final SwalbertCurrencies plugin;
+    private final CustomCurrencies plugin;
 
-    public CommandHandler(SwalbertCurrencies plugin) {
+    public CommandHandler(CustomCurrencies plugin) {
         this.plugin = plugin;
     }
 

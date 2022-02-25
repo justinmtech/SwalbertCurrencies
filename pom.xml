@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.justinmtech</groupId>
-    <artifactId>SwalbertCurrencies</artifactId>
+    <artifactId>CustomCurrencies</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>SwalbertCurrencies</name>
+    <name>CustomCurrencies</name>
 
     <description>A Minecraft plugin for creating and storing multiple currencies.</description>
     <properties>
@@ -95,6 +95,13 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.27</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.22</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

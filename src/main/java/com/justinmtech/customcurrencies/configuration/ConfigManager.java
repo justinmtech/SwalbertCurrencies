@@ -1,7 +1,7 @@
-package com.justinmtech.swalbertcurrencies.configuration;
+package com.justinmtech.customcurrencies.configuration;
 
-import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
-import com.justinmtech.swalbertcurrencies.core.Currency;
+import com.justinmtech.customcurrencies.CustomCurrencies;
+import com.justinmtech.customcurrencies.currencies.Currency;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,20 +12,20 @@ import java.io.IOException;
 import java.util.*;
 
 public class ConfigManager {
-    private SwalbertCurrencies plugin;
+    private CustomCurrencies plugin;
 
-    public ConfigManager(SwalbertCurrencies plugin) {
+    public ConfigManager(CustomCurrencies plugin) {
         this.plugin = plugin;
         generatePluginFolderIfNoneExists();
         generateConfigIfNoneExists();
         generateMessagesConfigIfNoneExists();
     }
 
-    public SwalbertCurrencies getPlugin() {
+    public CustomCurrencies getPlugin() {
         return plugin;
     }
 
-    public void setPlugin(SwalbertCurrencies plugin) {
+    public void setPlugin(CustomCurrencies plugin) {
         this.plugin = plugin;
     }
 

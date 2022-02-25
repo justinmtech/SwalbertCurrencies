@@ -1,10 +1,8 @@
-package com.justinmtech.swalbertcurrencies.persistence;
+package com.justinmtech.customcurrencies.persistence;
 
-//import com.justinmtech.swalbertcurrenciesapi.*;
-import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
-import com.justinmtech.swalbertcurrencies.configuration.ConfigManager;
-import com.justinmtech.swalbertcurrencies.core.Currency;
-import com.justinmtech.swalbertcurrencies.core.PlayerModel;
+import com.justinmtech.customcurrencies.CustomCurrencies;
+import com.justinmtech.customcurrencies.currencies.Currency;
+import com.justinmtech.customcurrencies.currencies.PlayerModel;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -14,10 +12,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MySQLDataHandler implements ManageData {
-    private SwalbertCurrencies plugin;
-    private ConfigManager configManager;
-    private FlatfileDataHandler flatfileDataHandler;
+public class DatabaseManager implements ManageData {
+    private final CustomCurrencies plugin;
+    private final FileManager fileManager;
     private final String username;
     private final String password;
     private final String host;
@@ -25,7 +22,7 @@ public class MySQLDataHandler implements ManageData {
     private final String database;
     private final String table;
 
-    public MySQLDataHandler(SwalbertCurrencies plugin, ConfigManager configManager) {
+    public DatabaseManager(CustomCurrencies plugin) {
         this.plugin = plugin;
         username = plugin.getConfigManager().getSqlUsername();
         password = plugin.getConfigManager().getSqlPassword();
@@ -33,8 +30,7 @@ public class MySQLDataHandler implements ManageData {
         port = plugin.getConfigManager().getSqlPort();
         database = plugin.getConfigManager().getSqlDatabase();
         table = plugin.getConfigManager().getSqlTable();
-        this.configManager = configManager;
-        this.flatfileDataHandler = new FlatfileDataHandler(plugin, this.configManager);
+        this.fileManager = new FileManager(plugin);
     }
 
     private boolean tableExists() {
@@ -220,7 +216,7 @@ public class MySQLDataHandler implements ManageData {
             }
         }
         if (anyLocalCurrencies()) {
-            flatfileDataHandler.initialSetup();
+            fileManager.initialSetup();
         }
     }
 
@@ -239,7 +235,7 @@ public class MySQLDataHandler implements ManageData {
             }
             return null;
         } else {
-            return flatfileDataHandler.getBalance(player, currency);
+            return fileManager.getBalance(player, currency);
         }
     }
 
@@ -258,7 +254,7 @@ public class MySQLDataHandler implements ManageData {
                 return false;
             }
         } else {
-            return flatfileDataHandler.setBalance(player, currency, amount);
+            return fileManager.setBalance(player, currency, amount);
         }
     }
 
@@ -274,7 +270,7 @@ public class MySQLDataHandler implements ManageData {
             setBalance(player2, currency, player2NewBalance);
             return true;
         } else {
-            return flatfileDataHandler.payBalance(player1, player2, currency, amount);
+            return fileManager.payBalance(player1, player2, currency, amount);
         }
     }
 
@@ -285,7 +281,7 @@ public class MySQLDataHandler implements ManageData {
             BigDecimal newBalance = balance.subtract(amount);
             return setBalance(player, currency, newBalance);
         } else {
-            return flatfileDataHandler.takeBalance(player, currency, amount);
+            return fileManager.takeBalance(player, currency, amount);
         }
     }
 
@@ -296,7 +292,7 @@ public class MySQLDataHandler implements ManageData {
             BigDecimal newBalance = balance.add(amount);
             return setBalance(player, currency, newBalance);
         } else {
-            return flatfileDataHandler.giveBalance(player, currency, amount);
+            return fileManager.giveBalance(player, currency, amount);
         }
     }
 
@@ -305,14 +301,14 @@ public class MySQLDataHandler implements ManageData {
         if (!currency.isLocalStorage()) {
             return setBalance(player, currency, BigDecimal.ZERO);
         } else {
-            return flatfileDataHandler.resetBalance(player, currency);
+            return fileManager.resetBalance(player, currency);
         }
     }
 
     @Override
     public boolean savePlayer(Player player) {
         if (anyLocalCurrencies()) {
-            flatfileDataHandler.savePlayer(player);
+            fileManager.savePlayer(player);
             return true;
         }
         return true;
@@ -321,7 +317,7 @@ public class MySQLDataHandler implements ManageData {
     @Override
     public boolean saveOfflinePlayer(OfflinePlayer player, PlayerModel playerModel) {
         if (anyLocalCurrencies()) {
-            flatfileDataHandler.saveOfflinePlayer(player, playerModel);
+            fileManager.saveOfflinePlayer(player, playerModel);
             return true;
         }
         return true;
@@ -330,7 +326,7 @@ public class MySQLDataHandler implements ManageData {
     @Override
     public boolean savePlayers(List<Player> players) {
         if (anyLocalCurrencies()) {
-            flatfileDataHandler.savePlayers(players);
+            fileManager.savePlayers(players);
             return true;
         }
         return true;
@@ -343,7 +339,7 @@ public class MySQLDataHandler implements ManageData {
         }
 
         if (anyLocalCurrencies()) {
-            flatfileDataHandler.loadPlayer(player);
+            fileManager.loadPlayer(player);
         }
         return true;
     }

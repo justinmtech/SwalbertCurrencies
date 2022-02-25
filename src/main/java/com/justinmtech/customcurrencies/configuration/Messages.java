@@ -1,14 +1,12 @@
-package com.justinmtech.swalbertcurrencies.configuration;
+package com.justinmtech.customcurrencies.configuration;
 
-import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
+import com.justinmtech.customcurrencies.CustomCurrencies;
+import lombok.AllArgsConstructor;
 import org.bukkit.ChatColor;
 
+@AllArgsConstructor
 public class Messages {
-    private SwalbertCurrencies plugin;
-
-    public Messages(SwalbertCurrencies plugin) {
-        this.plugin = plugin;
-    }
+    private final CustomCurrencies plugin;
 
     private String getStringFromPath(String path) {
         return ChatColor.translateAlternateColorCodes('&', (String) plugin.getConfigManager().getMessagesConfig().get(path));

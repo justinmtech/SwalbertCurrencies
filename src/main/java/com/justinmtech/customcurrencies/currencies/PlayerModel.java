@@ -1,5 +1,7 @@
-package com.justinmtech.swalbertcurrencies.core;
+package com.justinmtech.customcurrencies.currencies;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.math.BigDecimal;
@@ -7,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Getter
+@Setter
 public class PlayerModel implements ConfigurationSerializable {
     String uuid;
     Map<String, BigDecimal> currencies;
@@ -26,7 +30,6 @@ public class PlayerModel implements ConfigurationSerializable {
         Set<String> keys = serializedPlayerModel.keySet();
         for (String key : keys) {
             if (key.equalsIgnoreCase("uuid") || key.equalsIgnoreCase("==")) {
-                //this.uuid = (String) serializedPlayerModel.get("uuid");
             } else {
                 String amount = (String) serializedPlayerModel.get(key);
                 BigDecimal bd = BigDecimal.valueOf(Double.parseDouble(amount));
@@ -35,32 +38,10 @@ public class PlayerModel implements ConfigurationSerializable {
         }
     }
 
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public Map<String, BigDecimal> getCurrencies() {
-        return currencies;
-    }
-
-    public void setCurrencies(Map<String, BigDecimal> currencies) {
-        this.currencies = currencies;
-    }
-
-    @Override
-    public String toString() {
-        return uuid + getCurrencies().get("TestCoin");
-    }
-
     @Override
     public Map<String, Object> serialize() {
         HashMap<String, Object> serializableMap = new HashMap<>();
 
-        //serializableMap.put("uuid", uuid);
         Set<String> keys = currencies.keySet();
 
         for (String key : keys) {

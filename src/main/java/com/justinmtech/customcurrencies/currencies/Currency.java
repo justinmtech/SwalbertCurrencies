@@ -1,17 +1,19 @@
-package com.justinmtech.swalbertcurrencies.core;
+package com.justinmtech.customcurrencies.currencies;
 
+import lombok.Getter;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.*;
 
+@Getter
 public class Currency implements ConfigurationSerializable {
-    String name;
-    private List<String> aliasNames;
-    private boolean localStorage;
-    private boolean allowDecimals;
-    private boolean allowPay;
-    private String singularReference;
-    private String pluralReference;
+    private final String name;
+    private final List<String> aliasNames;
+    private final boolean localStorage;
+    private final boolean allowDecimals;
+    private final boolean allowPay;
+    private final String singularReference;
+    private final String pluralReference;
 
     public Currency(Set<String> keys, Map<String, Object> configMap) {
         List<String> keyList = new LinkedList<>();
@@ -37,62 +39,6 @@ public class Currency implements ConfigurationSerializable {
         localStorage = (Boolean) serializedCurrency.get("local-storage");
         allowDecimals = (Boolean) serializedCurrency.get("allow-decimals");
         allowPay = (Boolean) serializedCurrency.get("allow-pay");
-    }
-
-    public List<String> getAliasNames() {
-        return aliasNames;
-    }
-
-    public void setAliasNames(List<String> aliasNames) {
-        this.aliasNames = aliasNames;
-    }
-
-    public boolean isLocalStorage() {
-        return localStorage;
-    }
-
-    public void setLocalStorage(boolean localStorage) {
-        this.localStorage = localStorage;
-    }
-
-    public boolean isAllowDecimals() {
-        return allowDecimals;
-    }
-
-    public void setAllowDecimals(boolean allowDecimals) {
-        this.allowDecimals = allowDecimals;
-    }
-
-    public boolean isAllowPay() {
-        return allowPay;
-    }
-
-    public void setAllowPay(boolean allowPay) {
-        this.allowPay = allowPay;
-    }
-
-    public String getSingularReference() {
-        return singularReference;
-    }
-
-    public void setSingularReference(String singularReference) {
-        this.singularReference = singularReference;
-    }
-
-    public String getPluralReference() {
-        return pluralReference;
-    }
-
-    public void setPluralReference(String pluralReference) {
-        this.pluralReference = pluralReference;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     @Override

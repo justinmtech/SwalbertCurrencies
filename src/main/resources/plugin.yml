@@ -1,7 +1,7 @@
-name: SwalbertCurrencies
+name: CustomCurrencies
 version: '${project.version}'
-main: com.justinmtech.swalbertcurrencies.SwalbertCurrencies
-prefix: SwalbertCurrencies
+main: com.justinmtech.customcurrencies.CustomCurrencies
+prefix: CustomCurrencies
 authors: [ justinmtech ]
 description: A Minecraft plugin for creating and storing multiple currencies.
 website: https://justinmtech.com

@@ -1,14 +1,14 @@
-package com.justinmtech.swalbertcurrencies.commands;
+package com.justinmtech.customcurrencies.commands;
 
-import com.justinmtech.swalbertcurrencies.SwalbertCurrencies;
+import com.justinmtech.customcurrencies.CustomCurrencies;
 import org.bukkit.command.CommandSender;
 
 public class CurrencyCommand extends CustomCommand {
-    private final SwalbertCurrencies plugin = SwalbertCurrencies.getInstance();
     private final CommandHandler commandHandler;
 
     public CurrencyCommand(String name) {
         super(name);
+        CustomCurrencies plugin = CustomCurrencies.instance;
         commandHandler = new CommandHandler(plugin);
     }
 

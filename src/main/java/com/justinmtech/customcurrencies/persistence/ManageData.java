@@ -1,7 +1,7 @@
-package com.justinmtech.swalbertcurrencies.persistence;
+package com.justinmtech.customcurrencies.persistence;
 
-import com.justinmtech.swalbertcurrencies.core.Currency;
-import com.justinmtech.swalbertcurrencies.core.PlayerModel;
+import com.justinmtech.customcurrencies.currencies.Currency;
+import com.justinmtech.customcurrencies.currencies.PlayerModel;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
